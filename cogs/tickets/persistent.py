@@ -76,7 +76,7 @@ class ContactStaffForm(ui.Modal):
                 await cursor.execute("SELECT COUNT(*) FROM tickets WHERE ticket_type = 1")
                 exist = await cursor.fetchone()
         ticket_id = exist[0]+1
-        ticket_channel = bot.get_channel(int(os.getenv("TICKET_CHANNEL")))
+        ticket_channel = bot.get_channel(int(os.environ.get("TICKET_CHANNEL")))
         thread = await ticket_channel.create_thread(
         name = f"support-{ticket_id}",
         type=discord.ChannelType.private_thread
@@ -87,8 +87,11 @@ class ContactStaffForm(ui.Modal):
         embed.add_field(name=self.ign.label, value=self.ign.value, inline=False)
         embed.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
         view = CloseTicket(thread, interaction.user.id)
-        staff_role = guild.get_role(int(os.getenv("STAFF_TICKET_ROLE")))
-        await thread.send(f"{staff_role.mention}", delete_after=1)
+        staff_role = guild.get_role(int(os.environ.get("STAFF_TICKET_ROLE")))
+        try:
+            await thread.send(f"{staff_role.mention}", delete_after=1)
+        except:
+            pass
         await thread.send(embed = embed, view = view)
 
         try:
@@ -189,8 +192,10 @@ class SecondOffer(discord.ui.View):
         await close_ticket(interaction.client,interaction.channel, interaction.user)
         
 class Dropdown(discord.ui.Select):
-    def __init__(self, hoes):
+    def __init__(self, hoes,bot,channel):
         self.hoes = hoes
+        self.bot = bot
+        self.channel = channel
         if len(hoes) != 1:
             options = [discord.SelectOption(
                         label=f"{re.sub('§.', '', '' + str(hoe.name))}",
@@ -226,6 +231,9 @@ class Dropdown(discord.ui.Select):
         view2 = discord.ui.View().add_item(self)
         await interaction.response.edit_message(embed=e, view=view)
 
+    async def on_timeout(self):
+        await close_ticket(self.bot,self.channel, self.bot)
+    
 class Form(ui.Modal):
     description: ClassVar[ui.TextInput[Form]] = ui.TextInput(
         label="Describe the item you want to buy!",
@@ -259,8 +267,7 @@ class Form(ui.Modal):
                 await cursor.execute("SELECT COUNT(*) FROM tickets WHERE ticket_type = 2")
                 exist = await cursor.fetchone()
         ticket_id = exist[0] + 1
-
-        buy_channel = bot.get_channel(int(os.getenv("TICKET_CHANNEL")))
+        buy_channel = bot.get_channel(int(os.environ.get("TICKET_CHANNEL")))
 
         thread = await buy_channel.create_thread(
         name = f"buy-{ticket_id}",
@@ -359,7 +366,7 @@ class TicketHandler(ui.View):
                     await cursor.execute("SELECT COUNT(*) FROM tickets WHERE ticket_type = 3")
                     exist = await cursor.fetchone()
             ticket_id = exist[0] + 1
-            sell_channel = bot.get_channel(int(os.getenv("TICKET_CHANNEL")))
+            sell_channel = bot.get_channel(int(os.environ.get("TICKET_CHANNEL")))
             thread = await sell_channel.create_thread(
             name = f"sell-{ticket_id}",
             type=discord.ChannelType.private_thread
@@ -385,8 +392,8 @@ class TicketHandler(ui.View):
                     await cursor.execute("SELECT * FROM verification WHERE user_id = %s",
                         (interaction.user.id,))
                 data = await cursor.fetchone()
-                ign = data[0]
-                profile = data[1]
+                ign = data[1]
+                profile = data[2]
             try:
                 uuid = await bot.get_uuid(ign)
             except ConnectionError as exception:
@@ -410,18 +417,9 @@ class TicketHandler(ui.View):
             except HypixelIsDown:
                 e = discord.Embed(title="Hypixel API Error", description=f"As the selling process is entirely ran automatically we rely on Hypixel's API. Sadly it seems like Hypixel's API is currently down. Please try agina soon!", color=discord.Color.red())
                 e.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
-                msg = await thread.send(embed=e,view = CloseTicket(thread, interaction.user.id))
-                while True:
-                    await asyncio.sleep(10)
-                    try:
-                        data = await bot.get_skyblock_data(uuid, profile)
-                        await msg.delete()
-                        break
-                    except HypixelIsDown:
-                        e = discord.Embed(title="Hypixel API Error", description=f"As the selling process is entirely ran automatically we rely on Hypixel's API. Sadly it seems like Hypixel's API is currently down. Please try again soon!", color=discord.Color.red())
-                        e.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
-                        await msg.edit(embed=e, view = CloseTicket(thread, interaction.user.id))
-                        continue
+                await thread.send(embed=e,view = CloseTicket(thread, interaction.user.id))
+                await asyncio.sleep(60)
+                await close_ticket(bot,thread,bot)
 
             if "inv_contents" not in data:
                 return await Farming.FarmingItems.send_channel_error_response(thread, "API Disabled",
@@ -496,10 +494,9 @@ class TicketHandler(ui.View):
                 )
                 if len(foundItems) > 24:
                     embed.description = "We have found several items in your inventory. Please select the item you are trying to sell.\nNote: Not all items may be shown as there are too many items to display, please remove some items from your storage or inventory."
-                view = discord.ui.View().add_item(Dropdown(foundItems[0:25]))
+                view = discord.ui.View(timeout=300).add_item(Dropdown(foundItems[0:25],bot,thread))
                 embed.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
                 await thread.send(embed=embed, view=view)
             if close:
                 await asyncio.sleep(60)
                 await close_ticket(bot,thread,bot)
-            

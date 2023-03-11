@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import itertools
 from typing import TYPE_CHECKING
+from errors import PlayerNotFoundError, InvalidMinecraftUsername, ProfileNotFoundError, HypixelIsDown
+import pymysql
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-
-from utils import user_mention
+import aiomysql
+import os
 
 if TYPE_CHECKING:
     from utils import FarmingCouncil
@@ -21,8 +23,12 @@ class ForceVerify(commands.Cog):
 
     @app_commands.command(description="Unlink your in-game hypixel account")
     @app_commands.guild_only()
-    @app_commands.guilds(test_guild)
     async def forceunlink(self, interaction: discord.Interaction,user:discord.Member):
+        staff_role = discord.utils.get(interaction.guild.roles, name="Forcer")
+        if staff_role not in interaction.user.roles:
+            return await interaction.response.send_message("You are not allowed to use this command!", ephemeral=True)
+        if interaction.guild.id != int(os.environ.get("GUILD_ID")):
+            return 
         async with self.bot.pool.acquire() as conn:
             conn: aiomysql.Connection
             async with conn.cursor() as cursor:
@@ -51,9 +57,14 @@ class ForceVerify(commands.Cog):
 
     @app_commands.command(description="Force verify a user")
     @app_commands.guild_only()
-    @app_commands.guilds(test_guild)
     @app_commands.describe(user = "Discord user",ign="Minecraft username", profile="Skyblock profile, leave blank for most recently played.")
     async def forcelink(self,interaction:discord.Interaction,user:discord.Member,ign:str,profile:str=None):
+        staff_role = discord.utils.get(interaction.guild.roles, name="Forcer")
+        if staff_role not in interaction.user.roles:
+            return await interaction.response.send_message("You are not allowed to use this command!", ephemeral=True)
+        if interaction.guild.id != int(os.environ.get("GUILD_ID")):
+            return 
+        
         assert isinstance(interaction.user, discord.Member)
         ign = ign or interaction.user.display_name
         await interaction.response.defer(ephemeral=True)

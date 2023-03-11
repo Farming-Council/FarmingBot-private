@@ -11,7 +11,11 @@ from typing import Any, Literal, overload
 FARMING_ITEMS = [
     "COCO_CHOPPER", 
     "MELON_DICER",
+    "MELON_DICER_2",
+    "MELON_DICER_3",
     "PUMPKIN_DICER",
+    "PUMPKIN_DICER_2",
+    "PUMPKIN_DICER_3",
     "CACTUS_KNIFE",
     "FUNGI_CUTTER",
     "THEORETICAL_HOE_WHEAT_1",

@@ -10,4 +10,4 @@ load_dotenv()
 bot = FarmingCouncil()
 
 if __name__ == "__main__":
-    bot.run(os.getenv("TOKEN"))
+    bot.run(os.environ.get("TOKEN"))

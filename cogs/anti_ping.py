@@ -25,7 +25,6 @@ class AntiPing(commands.Cog):
         exempt="The role that can mention the blacklisted role. If not present, no roles will be removed.",
         force_create="Whether the rule should be created regardless if it already exists."
     )
-    @app_commands.guilds(1020742260683448450)
     @app_commands.guild_only()
     @app_commands.default_permissions(administrator=True)
     async def ensure_antiping(

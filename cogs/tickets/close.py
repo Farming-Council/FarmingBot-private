@@ -81,13 +81,13 @@ async def close_ticket(bot:FarmingCouncil,ticket_channel:discord.Thread, close_u
         embed.add_field(name="\U0001f194 Ticket ID", value=str(result[3]))
         embed.add_field(name="\U0001f512 Closed By", value=close_user.mention)
         embed.add_field(name="\U0001f552 Opened", value=discord.utils.format_dt(ticket_channel.created_at))
-        staff_channel = bot.get_channel(int(os.getenv("SELL_TICKET_CHANNEL")))
+        staff_channel = bot.get_channel(int(os.environ.get("SELL_TICKET_CHANNEL")))
         if result[5] == 2:
-            staff_channel = bot.get_channel(int(os.getenv("BUY_TICKET_CHANNEL")))
+            staff_channel = bot.get_channel(int(os.environ.get("BUY_TICKET_CHANNEL")))
         elif result[5] == 3:
-            staff_channel = bot.get_channel(int(os.getenv("SELL_TICKET_CHANNEL")))
+            staff_channel = bot.get_channel(int(os.environ.get("SELL_TICKET_CHANNEL")))
         else:
-            staff_channel = bot.get_channel(int(os.getenv("SUPPORT_TICKET_CHANNEL")))
+            staff_channel = bot.get_channel(int(os.environ.get("SUPPORT_TICKET_CHANNEL")))
         try:
             msg = await staff_channel.fetch_message(result[6])
             await msg.delete()
@@ -115,8 +115,8 @@ async def close_ticket(bot:FarmingCouncil,ticket_channel:discord.Thread, close_u
                 emoji="\U0001f4f0"
             )
         )
-        await user.send(embed=embed, view=view)
-    transcript_channel = bot.get_channel(int(os.getenv("LOGS_CHANNEL")))
+        #await user.send(embed=embed, view=view)
+    transcript_channel = bot.get_channel(int(os.environ.get("LOGS_CHANNEL")))
     if transcript_channel:
         file = discord.File(io.BytesIO(transcript.encode()), filename=f"transcript-{ticket_channel.name}.html")
         await transcript_channel.send(embed=embed, file=file)
@@ -157,11 +157,11 @@ class CloseTicket(ui.View):
                 )
             await conn.commit()
         if type == 2:
-            staff_channel = bot.get_channel(int(os.getenv("BUY_TICKET_CHANNEL")))
+            staff_channel = bot.get_channel(int(os.environ.get("BUY_TICKET_CHANNEL")))
         elif type == 3:
-            staff_channel = bot.get_channel(int(os.getenv("SELL_TICKET_CHANNEL")))
+            staff_channel = bot.get_channel(int(os.environ.get("SELL_TICKET_CHANNEL")))
         else:
-            staff_channel = bot.get_channel(int(os.getenv("SUPPORT_TICKET_CHANNEL")))
+            staff_channel = bot.get_channel(int(os.environ.get("SUPPORT_TICKET_CHANNEL")))
         if staff_channel:
             user = await bot.fetch_user(self.author)
             if user:

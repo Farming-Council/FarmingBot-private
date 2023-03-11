@@ -19,9 +19,9 @@ from cogs.tickets import CloseTicket, TicketHandler, ContactStaffTickets, AddSta
 load_dotenv()
 
 class FarmingCouncil(commands.Bot):
-    API_KEY: ClassVar[str] = os.getenv("hypixel_api_key")
+    API_KEY: ClassVar[str] = os.environ.get("hypixel_api_key")
     def __init__(self) -> None:
-        super().__init__(command_prefix="!", intents=discord.Intents.default(), help_command=None, owner_id=702385226407608341)
+        super().__init__(command_prefix="!", intents=discord.Intents.all(), help_command=None, owner_id=702385226407608341)
         self.session: aiohttp.ClientSession | None = None
         self.pool: aiomysql.Pool = None  # type: ignore
 
@@ -45,10 +45,10 @@ class FarmingCouncil(commands.Bot):
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()
         self.pool = await aiomysql.create_pool(
-            host=os.getenv("DATABASE_HOST"),
-            user=os.getenv("DB_USERNAME"),
-            password=os.getenv("DB_PASSWORD"),
-            db=os.getenv("DB_NAME"),
+            host=os.environ.get("DB_HOST"),
+            user=os.environ.get("DB_USERNAME"),
+            password=os.environ.get("DB_PASSWORD"),
+            db=os.environ.get("DB_NAME"),
             port = 32813,
             loop=self.loop
         )
@@ -241,3 +241,44 @@ class FarmingCouncil(commands.Bot):
                         latest_profile_last_save = last_save
                 i += 1
             return profiles[latest_profile_index]["members"][uuid]
+    async def get_most_recent_profile(self, uuid):
+        if self.session is None:
+            raise ConnectionError("aiohttp session has not been set")
+        async with self.session.get(
+            f"https://api.hypixel.net/skyblock/profiles?uuid={uuid}",
+            headers={"API-Key": self.API_KEY}
+        ) as req:
+            try:
+                info = await req.json()
+            except:
+                raise HypixelIsDown()
+
+            if not info["success"] or not info["profiles"]:
+                raise PlayerNotFoundError(uuid=uuid)
+
+            profiles = info["profiles"]
+            if len(profiles) == 0:
+                raise PlayerNotFoundError(uuid=uuid)
+
+            latest_profile_index = 0
+            latest_profile_last_save = 0
+            i = 0
+            for profileData in profiles:
+                if "last_save" in profileData:  # Not all profiles have this
+                    last_save = profileData["last_save"]
+                    if last_save > latest_profile_last_save:
+                        latest_profile_index = i
+                        latest_profile_last_save = last_save
+                i += 1
+            return(profiles[latest_profile_index]["cute_name"])
+    async def get_db_info(self,discord_id):
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("SELECT * FROM verification WHERE user_id = %s", (discord_id,))
+                ign = await cursor.fetchone()
+        if ign:
+            return ign[0]
+        else:
+            return None
