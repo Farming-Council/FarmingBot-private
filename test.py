@@ -1,0 +1,1 @@
+# Test file, all tests **must** be deleted before commiting/pushing. This file can be used to test out functions if you don't want to test them out using the commands.

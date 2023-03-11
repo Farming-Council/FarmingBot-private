@@ -1,0 +1,328 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import asyncio
+from typing import TYPE_CHECKING
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+from . import CloseTicket
+import asyncio
+import aiomysql
+import io
+import chat_exporter
+import os
+from dotenv import load_dotenv
+from cogs.tickets.close import close_ticket
+from cogs.tickets.persistent import TicketHandler
+load_dotenv()
+
+if TYPE_CHECKING:
+    from utils import FarmingCouncil
+
+__all__ = ("Ticketing",)
+
+class Ticketing(commands.Cog):
+    def __init__(self, bot: FarmingCouncil) -> None:
+        self.bot: FarmingCouncil = bot
+        self.staff_role: discord.Role 
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        guild = self.bot.get_guild(int(os.getenv("GUILD_ID")))
+        assert guild is not None
+        self.staff_role: discord.Role = discord.utils.get(guild.roles, name="Staff")  # type: ignore
+        assert self.staff_role is not None
+
+
+    
+    @app_commands.command(description="Admin Command")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator=True)
+    async def forceclose(self, interaction: discord.Interaction, member:discord.Member) -> None:
+        assert interaction.guild is not None
+        await interaction.response.send_message("Searching for tickets...", ephemeral=True)
+        total = 0
+        if interaction.guild.id != int(os.getenv("GUILD_ID")):
+            await interaction.followup.send("You can only use this command in the main server", ephemeral=True)
+            return
+        if interaction.user.guild_permissions.administrator == False:
+            await interaction.followup.send("You do not have permission to use this command", ephemeral=True)
+            return
+        async with self.bot.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cur:
+                await cur.execute(f"SELECT * FROM tickets WHERE user = {member.id} AND ticket_status = 0")
+                tickets = await cur.fetchall()
+                for ticket in tickets:
+                    chan = self.bot.get_channel(ticket[1])
+                    if chan:
+                        await close_ticket(self.bot, chan, interaction.user)
+            await conn.commit()
+
+        try:
+            await interaction.followup.send(f"Done! Deleted {total} tickets", ephemeral=True)
+        except discord.HTTPException:
+            pass
+
+    @app_commands.command(description="Close ALL tickets BE VERY CAREFUL WITH THIS COMMAND")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator=True)
+    async def closeall(self, interaction: discord.Interaction):
+        if interaction.guild.id != int(os.getenv("GUILD_ID")):
+            await interaction.response.send_message("You can only use this command in the main server", ephemeral=True)
+            return
+        if interaction.user.guild_permissions.administrator == False:
+            await interaction.response.send_message("You do not have permission to use this command", ephemeral=True)
+            return
+        assert interaction.guild is not None
+        await interaction.response.send_message("Closing all tickets...", ephemeral=True)
+        total = 0
+        async with self.bot.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT * FROM tickets")
+                tickets = await cur.fetchall()
+                for ticket in tickets:
+                    chan = self.bot.get_channel(ticket[1])
+                    await cur.execute(
+                        f"DELETE FROM tickets WHERE channel_id = {ticket[1]}"
+                    )
+                    if chan is None:
+                        continue
+                    else:
+                        await chan.delete()
+                        total =total+1
+                        await asyncio.sleep(1)
+            await conn.commit()
+        await interaction.followup.send(f"Done! Deleted {total} tickets", ephemeral=True)
+
+    @app_commands.command(description="Close this ticket")
+    @app_commands.guild_only()
+    async def close(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+        assert interaction.guild is not None
+        if interaction.guild.id != int(os.getenv("GUILD_ID")):
+            await interaction.followup.send("You can only use this command in the main server", ephemeral=True)
+            return
+
+        async with self.bot.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cur:
+                await cur.execute(f"SELECT * FROM tickets WHERE channel_id = {interaction.channel.id}")
+                tickets = await cur.fetchone()
+
+        if not tickets:
+            embed = discord.Embed(title="Error", description="This is not a ticket channel", color=discord.Color.red())
+            return await interaction.followup.send(embed=embed,ephemeral=True)
+        
+        us  = self.bot.get_user(tickets[0])
+        if not us:
+            await interaction.channel.send("User not found\nDeleting ticket in 10 seconds")
+            await asyncio.sleep(10)
+            async with self.bot.pool.acquire() as conn:
+                conn: aiomysql.Connection
+                async with conn.cursor() as cur:
+                    await cur.execute(f"DELETE FROM tickets WHERE channel_id = {interaction.channel.id}")
+                await conn.commit()
+
+            return await interaction.channel.delete()
+        
+        embed = discord.Embed(title="Do you want to support us?", description = """
+            We are happy that you chose our service!
+If you want to support us so we can continue working on this community make sure to subscribe to us on youtube!
+
+**https://www.youtube.com/@FarmingCouncil**
+
+Your help would mean the world to us ❤️
+Have a nice day!""", color=0x2F3136)
+        await interaction.channel.send(embed=embed)
+        await interaction.channel.send(f"{us.mention}",delete_after=1)
+        name = interaction.channel.name
+        await interaction.channel.edit(name=f"{name}-closed")
+        await interaction.followup.send("Ticket closing...", ephemeral=True)
+        await asyncio.sleep(10)
+        try:
+            await close_ticket(self.bot, interaction.channel,interaction.user)
+        except discord.NotFound:
+            pass
+    
+
+
+    async def send_msg(self,message,type):   
+        totala = 0
+        async with self.bot.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cur:
+                await cur.execute(f"SELECT * FROM tickets WHERE ticket_status = 0 AND {type}")
+                tickets = await cur.fetchall()
+                for ticket in tickets:
+                    chan = self.bot.get_channel(ticket[1])
+                    if chan is None:
+                        continue
+                    else:
+                        try:
+                            await chan.send(message)
+                            user = await self.bot.fetch_user(ticket[0])
+                            if user:
+                                await chan.send(f"{user.mention}",delete_after=1)
+                            totala =totala+1
+                            await asyncio.sleep(1)
+                        except:
+                            pass
+        return totala
+                
+    @app_commands.command(description="Send a message to all tickets")
+    @app_commands.choices(channel_type=[
+        app_commands.Choice(name="buy", value="buy"),
+        app_commands.Choice(name="sell", value="sell"),
+        app_commands.Choice(name="support", value="support"),
+        app_commands.Choice(name="all", value="all"),
+        app_commands.Choice(name="shop", value="shop"),
+        ])
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.guild_only()
+    async def ticketmessage(self, interaction: discord.Interaction, channel_type: app_commands.Choice[str], message: str) -> None:
+        if interaction.guild.id != int(os.getenv("GUILD_ID")):
+            await interaction.response.send_message("You can only use this command in the main server", ephemeral=True)
+            return
+        if interaction.user.guild_permissions.administrator == False:
+            await interaction.response.send_message("You do not have permission to use this command", ephemeral=True)
+            return
+        assert interaction.guild is not None
+        await interaction.response.defer()
+        total = 0
+        if channel_type.value == "all":
+            total = total + await self.send_msg(message,"ticket_type = 1 OR ticket_type = 2 OR ticket_type = 3")
+        if channel_type.value == "shop":
+            total = total + await self.send_msg(message,"ticket_type = 2 OR ticket_type = 3")
+        if channel_type.value == "support":
+            total = total + await self.send_msg(message,"ticket_type = 1 OR ticket_type = 2 OR ticket_type = 3")
+        if channel_type.value == "buy":
+            total = total + await self.send_msg(message,"ticket_type = 2")
+        if channel_type.value == "sell":
+            total = total + await self.send_msg(message,"ticket_type = 3")
+        await interaction.followup.send(f"Sent message to {total} tickets", ephemeral=True)
+    
+#     @app_commands.command()
+#     @app_commands.checks.has_permissions(administrator=True)
+#     @app_commands.guild_only()
+#     async def setup_rent(self, interaction: discord.Interaction) -> None:
+#         assert interaction.channel is not None
+#         assert isinstance(interaction.channel, (discord.TextChannel, discord.Thread))
+#         maybe_tickets = discord.utils.find(lambda v: isinstance(v, RentingTickets), self.bot.persistent_views)
+#         if maybe_tickets:
+#             maybe_tickets.stop()
+#         await interaction.response.send_message("Creating ticket view...", ephemeral=True)
+#         e = discord.Embed(title="The Farming Council's Renting System!",
+#                           description="""
+#                           **__Fee Calculation:__**
+
+# > Fix costs and fees *(upon trading the item over)*: `3% of item value +  full item value as collateral`
+# > 
+# > Weekly fees: `[time rented in days * 100000] + [80 * (New Counter - Old Counter)^0.75] + 3m`
+# Fees have to be fully paid every week once *(Saturday or Sunday)*.
+
+# **__Important notes:__**
+
+# > You have to tell us 3 days prior before you give us back the items!
+# > Minimum time to rent: 3 days *(You can rent for less than 3 days but still have to pay for the full 3 days)*
+# > **You** are responsible to look at the time. We will **not** tell you when to give back an item due to time expenses. 
+# > Minimum item value to rent: **10m coins**!
+# > **If you fail giving it back 12 hours after the end of the 3 day notice you will keep the item, we won't take it back and you will be permanently excluded from the renting system**
+
+# Thanks for choosing our services!
+# """,
+#                           color=0x2F3136)
+#         e.set_image(url="https://i.imgur.com/KMTZJxm.png")
+#         e.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
+#         image_embed = discord.Embed(color=0x2F3136)
+#         image_embed.set_image(url="https://i.imgur.com/Zc4AHYY.png")
+#         await interaction.channel.send(
+#             embeds=[image_embed, e],
+#             view=RentingTickets()
+#         )
+
+#     @app_commands.command()
+#     @app_commands.checks.has_permissions(administrator=True)
+#     @app_commands.guild_only()
+#     async def setup_contact(self, interaction: discord.Interaction) -> None:
+#         assert interaction.channel is not None
+#         assert isinstance(interaction.channel, (discord.TextChannel, discord.Thread))
+#         maybe_tickets = discord.utils.find(lambda v: isinstance(v, ContactStaffTickets), self.bot.persistent_views)
+#         if maybe_tickets:
+#             maybe_tickets.stop()
+#         await interaction.response.send_message("Creating ticket view...", ephemeral=True)
+#         e = discord.Embed(title="Contact Staff",
+#                           description="""
+#                           _Here you can contact the **staff team** for the following reasons:_
+
+# > 📢 **Reporting** 
+# > - scamming, rule violation, ratting, etc.
+# > 
+# > 🃏 **Requesting Roles & Claiming Giveaway rewards**
+# > - for requesting roles that are not listed in <#1031452634974015498>, or claiming giveaway rewards in case you won. 
+# > (Requestable roles: <@&1023315201875005520> and positions (f.e. <@&1036731140712702003>)
+# > 
+# > ❓ **Other Questions**
+
+# ❕ **Do not contact our staff team for the following**:
+# - Reporting someone, who is not in this Discord server, Creating non-serious tickets (i.e. wasting staff time), making claims about someone without valid evidence.
+#                           """,
+#                           color=0x2F3136)
+#         e.set_image(url="https://i.imgur.com/KMTZJxm.png")
+#         e.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
+#         image_embed = discord.Embed(color=0x2F3136)
+#         image_embed.set_image(url="https://i.imgur.com/gYpLMvA.png")
+#         await interaction.channel.send(
+#             embeds=[image_embed, e],
+#             view=ContactStaffTickets()
+#         )
+
+#     @app_commands.command()
+#     @app_commands.checks.has_permissions(administrator=True)
+#     @app_commands.guild_only()
+#     async def setup_tickets(self, interaction: discord.Interaction) -> None:
+#         """Sets up a persistent buy or sell message in the channel in which this command is executed."""
+#         assert interaction.channel is not None
+#         assert isinstance(interaction.channel, (discord.TextChannel, discord.Thread))
+#         maybe_tickets = discord.utils.find(lambda v: isinstance(v, TicketHandler), self.bot.persistent_views)
+#         if maybe_tickets:
+#             maybe_tickets.stop()
+#         await interaction.response.send_message("Creating ticket view...", ephemeral=True)
+#         #  Copied from https://canary.discord.com/channels/1020742260683448450/1025890799906459698/1053695874070495253,
+#         #  change as needed
+#         embed = discord.Embed(
+#             title="The Shop",
+#             description="""
+#             Welcome at **The Shop**. Please make sure to read the instructions thoroughly to avoid confusion during the process. It is also necessary to have your **API enabled** during the buying or selling process. All items that you want to sell **have to be** in your inventory/backpack/enderchest, otherwise the bot won't be able to detect them.
+
+#             Please fill out the form properly to avoid any waiting times.
+# In addition to that send us an image of the item you are trying to sell/buy right after submitting the ticket.
+
+# Current prices are for non enchanted items _(Last updated: 27th of Feb.)_:
+
+# > **Mathematical BP:** 4.5m
+# > 
+# > **Melon and Pumpkin Dicer:** 4.5m
+# > **Coco Chopper:** 4.5m
+# > **Fungi Cutter/Cactus Knife:** 4.5m
+# > 
+# > **Baskets/Pouches:** 3m
+# > **Greater Hoe of Tilling:** 800k
+# > **Greatest Hoe of Tilling:** 1.5m
+# > **Prismapumps:** 300k
+
+# **We will process your request as soon as possible. Please be patient and don't ping any of our Staff.**
+#             """,
+#             color=0x2F3136
+#         )
+#         embed.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
+#         embed.set_image(url="https://i.imgur.com/KMTZJxm.png")
+#         image_embed = discord.Embed(color=0x2F3136)
+#         image_embed.set_image(url="https://i.imgur.com/e8ctdI0.png")
+#         await interaction.channel.send(
+#             embeds=[image_embed, embed],
+#             view=TicketHandler()
+#         )
