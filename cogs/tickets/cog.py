@@ -268,7 +268,7 @@ Have a nice day!""", color=0x2F3136)
             Please fill out the form properly to avoid any waiting times.
 In addition to that send us an image of the item you are trying to sell/buy right after submitting the ticket.
 
-Current prices are for non enchanted items _(Last updated: 1th of March.)_:
+Current prices are for non enchanted items _(Last updated: 11th of March.)_:
 
 > **Mathematical BP:** 4.2m
 > 
