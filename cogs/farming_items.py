@@ -161,6 +161,9 @@ class FarmingItems(commands.Cog):
             with open ("price.json", "w") as f:
                 json.dump(self.prices,f)
             
+    async def send_channel_error_response(self,chan,msg,id,a=None,b=None):
+        embed = discord.Embed(title="Error", description=msg, color=discord.Color.red())
+        await chan.send(embed=embed)
 
     async def findFarmingItems(self, encoded_data: str) -> list:
         decoded = utils.decode_skyblock_item_data(encoded_data)
@@ -186,7 +189,8 @@ class FarmingItems(commands.Cog):
                 cultivating = int(str(attributes["farmed_cultivating"])) if "farmed_cultivating" in attributes else 0
                 mined = int(str(attributes["mined_crops"])) if "mined_crops" in attributes else 0
                 ffd = int(str(attributes["farming_for_dummies_count"])) if "farming_for_dummies_count" in attributes else 0
-
+                if "DICER" in item_id:
+                    mined=cultivating
                 found.append(FarmingItem(self, name, lore, item_id, quantity, recom, cultivating, mined, ffd, enchantments
                 ))
             except KeyError:
