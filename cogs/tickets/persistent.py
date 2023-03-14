@@ -140,11 +140,11 @@ class FirstOffer(discord.ui.View):
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
         offer = 0
         if "3" in self.hoe.item_id:
-            offer = round(self.price * 0.43, -3)
+            offer = round(self.price * 1.23)
         if "2" in self.hoe.item_id:
-            offer = round(self.price * 0.53, -3)
+            offer = round(self.price * 1.23)
         if "1" in self.hoe.item_id:
-            offer = round(self.price * 0.60, -3)
+            offer = round(self.price * 1.20)
         self.deny.disabled = True
         self.confirm.disabled = True
         e = discord.Embed(description=f"We regret that our offer did not meet your expectations. Our NEW maximum offer is **{numerize.numerize(offer)}**. Are you willing to accept this amount?", color=0x2F3136)
