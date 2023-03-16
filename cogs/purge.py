@@ -21,8 +21,10 @@ class purge(commands.Cog):
     @commands.has_permissions(administrator=True)
     @app_commands.describe(limit = "Amount of messages you'd like to purge")
     async def purge(self, interaction: discord.Interaction,limit: int):
-        await interaction.response.send_message('Cleared by {}'.format(self.interaction.author.mention))
+        await interaction.defer()
         await interaction.channel.purge(limit=limit)
+        await interaction.response.send_message(f'Cleared {limit} messages by by {self.interaction.author.mention}',ephemeral=True)
+
         
         
 async def setup(bot: commands.Bot):
