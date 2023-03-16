@@ -116,7 +116,21 @@ class FarmingCouncil(commands.Bot):
             self.pool.close()
             await self.pool.wait_closed()
         await super().close()
-
+    async def add_crop(self,cropname, link):
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("INSERT INTO tutorial (cropname, link) VALUES (%s, %s) ON DUPLICATE KEY UPDATE link = %s", (str(cropname), str(link), str(link)))
+                await conn.commit()
+    
+    async def remove_crop(self,cropname):
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("DELETE FROM tutorial where cropname = %s", (str(cropname),))
+                await conn.commit()
     async def get_uuid(self, username: str) -> str:
         """Gets the UUID of a Minecraft player with the given username.
 
