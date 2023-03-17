@@ -36,7 +36,7 @@ class autoroles(commands.Cog):
         if weight[0] == 0:
             embed = discord.Embed(title="Error",description=weight[1])            
             return
-        if weight[0] >= 1750:
+        if weight[0] >= 1500:
             embed = discord.Embed(title="You are eligible for **Certified Farmer**!", description = f"""Congratulations {interaction.user}\n\nThe role "Certified Farmer" should be added to you.""")
             guild = interaction.guild
             role = interaction.guild.get_role(1023315201875005520)
@@ -62,7 +62,7 @@ class autoroles(commands.Cog):
                         uuid = await self.bot.get_uuid(ign)
                         profile = await self.bot.get_most_recent_profile(uuid)
                     weight = await calculate_farming_weight(self.bot,ign,profile)
-                    if weight[0] >= 1750:
+                    if weight[0] >= 1500:
                         guild = interaction.guild
                         role = interaction.guild.get_role(1023315201875005520)
                         await interaction.user.add_roles(role)
