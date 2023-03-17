@@ -66,7 +66,6 @@ class autoroles(commands.Cog):
                         guild = interaction.guild
                         role = interaction.guild.get_role(1023315201875005520)
                         await interaction.user.add_roles(role)
-        await interaction.edit_original_response("Finished running /forceupdate!")
     
 
         
