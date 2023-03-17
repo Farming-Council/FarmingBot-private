@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from utils import FarmingCouncil
 
 
-class ForceVerify(commands.Cog):
+class ForceLink(commands.Cog):
     def __init__(self, bot: FarmingCouncil):
         self.bot: FarmingCouncil = bot
 
@@ -44,18 +44,18 @@ class ForceVerify(commands.Cog):
                 await cursor.execute("DELETE FROM verification WHERE user_id = %s", (user.id))
                 await conn.commit()
         try:
-            verified_role = discord.utils.get(interaction.guild.roles, name="Verified")
-            unverified_role = discord.utils.get(interaction.guild.roles, name="Unverified")
+            verified_role = discord.utils.get(interaction.guild.roles, name="Linked")
+            unverified_role = discord.utils.get(interaction.guild.roles, name="Unlinked")
             await user.remove_roles(verified_role)
             await user.add_roles(unverified_role)
         except:
-            embed = discord.Embed(title="\U0000274c Failed", description="There was an issue while unverifying, please contact a staff member.", color=discord.Colour.red())
+            embed = discord.Embed(title="\U0000274c Failed", description="There was an issue while un-linking, please contact a staff member.", color=discord.Colour.red())
             return await interaction.response.send_message(embed=embed, ephemeral=True)
         embed = discord.Embed(title="Success", description=f"Successfully unlinked {user.mention} account.", color=0x2F3136)
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @app_commands.command(description="Force verify a user")
+    @app_commands.command(description="Force link a user")
     @app_commands.guild_only()
     @app_commands.describe(user = "Discord user",ign="Minecraft username", profile="Skyblock profile, leave blank for most recently played.")
     async def forcelink(self,interaction:discord.Interaction,user:discord.Member,ign:str,profile:str=None):
@@ -137,12 +137,12 @@ class ForceVerify(commands.Cog):
         if player.social_media.discord == discord_name:
             if interaction.guild.id in [1040291074410819594,1020742260683448450]:
                 try:
-                    verified_role = discord.utils.get(interaction.guild.roles, name="Verified")
-                    unverified_role = discord.utils.get(interaction.guild.roles, name="Unverified")
+                    verified_role = discord.utils.get(interaction.guild.roles, name="Linked")
+                    unverified_role = discord.utils.get(interaction.guild.roles, name="Unlinked")
                     await user.add_roles(verified_role)
                     await user.remove_roles(unverified_role)
                 except:
-                    embed = discord.Embed(title="\U0000274c Failed", description="There was an issue while verifying. Error: No add role permissions, tell CosmicCrow to fix", color=discord.Color.red())
+                    embed = discord.Embed(title="\U0000274c Failed", description="There was an issue while linking. Error: No add role permissions, tell CosmicCrow to fix", color=discord.Color.red())
                     return await interaction.followup.send(embed=embed)
                 try:
                     await user.edit(nick=player.username)
@@ -176,4 +176,4 @@ class ForceVerify(commands.Cog):
         )
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(ForceVerify(bot))
+    await bot.add_cog(ForceLink(bot))

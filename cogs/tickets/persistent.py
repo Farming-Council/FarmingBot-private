@@ -319,7 +319,7 @@ class TicketHandler(ui.View):
                     await cursor.execute("SELECT * FROM verification WHERE user_id = %s", (interaction.user.id,))
                     ign = await cursor.fetchone()
                     if not ign:
-                        await interaction.response.send_message("Your IGN is not stored in our database! Please go to <#1020759880849703013> and unverify using `/unlink` and re-verify using `/verify`!", ephemeral=True)
+                        await interaction.response.send_message("Your IGN is not stored in our database! Please go to <#1020759880849703013> and un-link using `/unlink` and re-link using `/link`!", ephemeral=True)
                         await interaction.message.edit(view=self)
                         return 
                     await cursor.execute("SELECT * FROM tickets WHERE user = %s AND ticket_type = 2 AND ticket_status = 0", (interaction.user.id,))
@@ -346,7 +346,7 @@ class TicketHandler(ui.View):
                     ign = await cursor.fetchone()
                     if not ign:
                         await interaction.edit_original_response(view=self)
-                        return await interaction.followup.send("Your IGN is not stored in our database! Please go to <#1020759880849703013> and unverify using `/unlink` and re-verify using `/verify`!", ephemeral=True)
+                        return await interaction.followup.send("Your IGN is not stored in our database! Please go to <#1020759880849703013> and unlink using `/unlink` and re-link using `/link`!", ephemeral=True)
                     await cursor.execute("SELECT * FROM tickets WHERE user = %s AND ticket_type = 3 AND ticket_status = 0", (interaction.user.id,))
                     exist = await cursor.fetchone()
                     if exist:
