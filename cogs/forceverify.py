@@ -66,7 +66,7 @@ class ForceVerify(commands.Cog):
             return 
         
         assert isinstance(interaction.user, discord.Member)
-        ign = ign or interaction.user.display_name
+
         await interaction.response.defer(ephemeral=True)
         try:
             uuid = await self.bot.get_uuid(ign)
@@ -142,7 +142,7 @@ class ForceVerify(commands.Cog):
                     await user.add_roles(verified_role)
                     await user.remove_roles(unverified_role)
                 except:
-                    embed = discord.Embed(title="\U0000274c Failed", description="There was an issue while verifying.", color=discord.Color.red())
+                    embed = discord.Embed(title="\U0000274c Failed", description="There was an issue while verifying. Error: No add role permissions, tell CosmicCrow to fix", color=discord.Color.red())
                     return await interaction.followup.send(embed=embed)
                 try:
                     await user.edit(nick=player.username)
