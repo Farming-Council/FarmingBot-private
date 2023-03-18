@@ -51,6 +51,8 @@ class autoroles(commands.Cog):
     async def forceupdate(self, interaction: discord.Interaction):
         await interaction.response.send_message("Running through every member")
         members = interaction.guild.members
+        channel =  self.bot.get_channel(1040291074410819597)
+        await channel.send(members)
         for user in members:
             if "Verified" in user.roles:
                 ign = await self.bot.get_db_info(interaction.user.id)[1]
