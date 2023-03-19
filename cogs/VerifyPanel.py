@@ -402,10 +402,15 @@ class VerifyPanel(commands.Cog):
         self.bot.add_view(verify_panel())
     verification = app_commands.Group(name="verification", description="Bot verification commands")
     @verification.command(name = "panel")
-    @app_commands.checks.has_permissions(manage_guild=True)
     async def panel(self,interaction: discord.Interaction,title: str ="Anti-bot Verification!",description: str="Click the button to verify!"):
         """Creates a panel for verification"""
         await interaction.response.defer()
+        if interaction.user.id not in [242063157122564106,650431108370137088]:
+            embed=discord.Embed(title="Error", description="You are not a bot dev!", color=discord.Color.red())
+            embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
+            embed.timestamp = datetime.datetime.utcnow()
+            await interaction.followup.send(embed=embed)
+            return
         resp = await self.bot.getserver(interaction.guild.id)
         if resp[6]:
             server = resp

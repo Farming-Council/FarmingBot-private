@@ -7,7 +7,7 @@ import os
 import datetime
 from discord.app_commands import AppCommandError
 from utils.baseclass import FarmingCouncil
-
+goodppl = [242063157122564106,650431108370137088]
 class VerifyAdmin(commands.Cog):
     def __init__(self, bot: FarmingCouncil) -> None:
         self.bot = bot
@@ -15,10 +15,16 @@ class VerifyAdmin(commands.Cog):
 
     @setting.command(name = "setup")
     @app_commands.guild_only()
-    @app_commands.checks.has_permissions(manage_guild=True)
     async def setup(self,interaction: discord.Interaction):
         """ Sets up the server in the database"""
+
         await interaction.response.defer()
+        if interaction.user.id not in goodppl:
+            embed=discord.Embed(title="Error", description="You are not a bot dev!", color=discord.Color.red())
+            embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
+            embed.timestamp = datetime.datetime.utcnow()
+            await interaction.followup.send(embed=embed)
+            return
         server = await self.bot.newserver(interaction.guild.id)
         if server == 0:
             embed=discord.Embed(title="Server added!", description="Server added in our database!", color=discord.Color.green())
@@ -35,10 +41,17 @@ class VerifyAdmin(commands.Cog):
     
     @setting.command()
     @app_commands.guild_only()
-    @app_commands.checks.has_permissions(manage_guild=True)
     async def all(self, interaction: discord.Interaction) -> None:
         """ Gets all settings """
+        await interaction.response.defer()
+        if interaction.user.id not in goodppl:
+            embed=discord.Embed(title="Error", description="You are not a bot dev!", color=discord.Color.red())
+            embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
+            embed.timestamp = datetime.datetime.utcnow()
+            await interaction.followup.send(embed=embed)
+            return
         server = await self.bot.getserver(interaction.guild.id)
+
         if server:
             embed=discord.Embed(title="Settings", description="Change a setting with /setting name", color=discord.Color.green())
             embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
@@ -47,7 +60,7 @@ class VerifyAdmin(commands.Cog):
             embed=discord.Embed(title="Error", description="Server not setup!", color=discord.Color.red())
             embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
         embed.timestamp = datetime.datetime.utcnow()
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
     
 
     @setting.command(name="channel") # 
@@ -56,6 +69,13 @@ class VerifyAdmin(commands.Cog):
     @app_commands.checks.has_permissions(manage_guild=True)
     async def channel(self, interaction: discord.Interaction,channel:discord.TextChannel=None) -> None:
         """ Changes the logging channel """
+        await interaction.response.defer()
+        if interaction.user.id not in goodppl:
+            embed=discord.Embed(title="Error", description="You are not a bot dev!", color=discord.Color.red())
+            embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
+            embed.timestamp = datetime.datetime.utcnow()
+            await interaction.followup.send(embed=embed)
+            return
         tr = True
         if channel:
             try:
@@ -80,7 +100,7 @@ class VerifyAdmin(commands.Cog):
                 embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
         
         embed.timestamp = datetime.datetime.utcnow()
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 
     @setting.command(name="role") 
@@ -89,6 +109,13 @@ class VerifyAdmin(commands.Cog):
     @app_commands.checks.has_permissions(manage_guild=True)
     async def role(self, interaction: discord.Interaction,role:discord.Role=None) -> None:
         """ Changes the verifacation role """
+        await interaction.response.defer()
+        if interaction.user.id not in goodppl:
+            embed=discord.Embed(title="Error", description="You are not a bot dev!", color=discord.Color.red())
+            embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
+            embed.timestamp = datetime.datetime.utcnow()
+            await interaction.followup.send(embed=embed)
+            return
         tr = True
         if role:
             try:
@@ -114,7 +141,7 @@ class VerifyAdmin(commands.Cog):
                 embed=discord.Embed(title="Error", description="Server not setup!", color=discord.Color.red())
                 embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
         embed.timestamp = datetime.datetime.utcnow()
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @setting.command(name="activate") 
     @app_commands.guild_only()
@@ -122,6 +149,13 @@ class VerifyAdmin(commands.Cog):
     @app_commands.checks.has_permissions(manage_guild=True)
     async def activate(self, interaction: discord.Interaction,bot_on:bool) -> None:
         """ Turns on or off the bot """
+        await interaction.response.defer()
+        if interaction.user.id not in goodppl:
+            embed=discord.Embed(title="Error", description="You are not a bot dev!", color=discord.Color.red())
+            embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
+            embed.timestamp = datetime.datetime.utcnow()
+            await interaction.followup.send(embed=embed)
+            return
         change = await self.bot.changesettings(interaction.guild.id,"disabled",bot_on)
         if change ==1:
             embed=discord.Embed(title="Settings", description=f"Changed disabled to {bot_on}", color=discord.Color.green())
@@ -130,7 +164,7 @@ class VerifyAdmin(commands.Cog):
             embed=discord.Embed(title="Error", description="Server not setup!", color=discord.Color.red())
             embed.set_footer(text = f"{interaction.user.name}",icon_url=interaction.user.avatar.url)
         embed.timestamp = datetime.datetime.utcnow()
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 
 
