@@ -15,7 +15,7 @@ from discord.ext import commands
 from errors import InvalidMinecraftUsername, PlayerNotFoundError, ProfileNotFoundError, HypixelIsDown
 from _types import HypixelPlayer, HypixelSocialMedia
 from cogs.tickets import CloseTicket, TicketHandler, ContactStaffTickets, AddStaff
-
+import random
 load_dotenv()
 
 class FarmingCouncil(commands.Bot):
@@ -84,12 +84,45 @@ class FarmingCouncil(commands.Bot):
                         ticket_status INT NOT NULL,
                         ticket_type INT NOT NULL,
                         ticket_persistent_ids TEXT,
-                        timestamp BIgINT DEFAULT CURRENT_TIMESTAMP NOT NULL
+                        timestamp BIGINT DEFAULT CURRENT_TIMESTAMP NOT NULL
                     )"""
                 )
             await conn.commit()
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute(
+                    """CREATE TABLE IF NOT EXISTS logs (
+                        id INT PRIMARY KEY AUTO_INCREMENT,
+                        serverid BIGINT NOT NULL,
+                        userid BIGINT, 
+                        operatorid BIGINT,
+                        event TEXT,
+                        timestamp BIGINT DEFAULT CURRENT_TIMESTAMP NOT NULL
+                    
+                            )"""
+                )
+            await conn.commit()
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute(
+                """CREATE TABLE IF NOT EXISTS server (
+                            id INT PRIMARY KEY AUTO_INCREMENT,
+                            serverid BIGINT NOT NULL,
+                            verify BOOL, 
+                            method INT,
+                            channel BIGINT,
+                            role BIGINT,
+                            disabled BOOL DEFAULT False
+                        );
+                    """    
+                )
+            await conn.commit()
         for cog in pkgutil.iter_modules(["cogs"], prefix="cogs."):
-            await self.load_extension(cog.name)
+                await self.load_extension(cog.name)
         self.add_view(TicketHandler())
         async with self.pool.acquire() as conn:
             conn: aiomysql.Connection
@@ -296,3 +329,54 @@ class FarmingCouncil(commands.Bot):
             return ign[0]
         else:
             return None
+    async def newserver(self, id):
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("SELECT * FROM server WHERE serverid = %s", (int(id),))
+                item = await cursor.fetchone()
+
+        if item:
+            return(1)
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("INSERT INTO server(serverid) VALUES (%s)", (int(id),))
+                await conn.commit()
+        return(0)
+
+    async def getserver(self, id):
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("SELECT * FROM server WHERE serverid = %s", (int(id),))
+                item = await cursor.fetchone()
+        return(item)
+
+    async def changesettings(self,serverid,setting,value):
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute("SELECT * FROM server WHERE serverid =%s", (int(serverid),))
+                item = await cursor.fetchone()
+
+        if not item:
+            return(0)
+        async with self.pool.acquire() as conn:
+            conn: aiomysql.Connection
+            async with conn.cursor() as cursor:
+                cursor: aiomysql.Cursor
+                await cursor.execute(f"UPDATE server SET {setting} = %s WHERE serverid = %s", (value,int(serverid),))
+                await conn.commit()
+        return(1)
+
+    def get_ran(self,list):
+        a = random.randint(-50,100)
+        if a in list:
+            return(self.get_ran(list))
+        else:
+            return a

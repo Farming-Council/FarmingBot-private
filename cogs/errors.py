@@ -64,4 +64,5 @@ class errors(commands.Cog):
                 print(error)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(errors(bot))
+    # await bot.add_cog(errors(bot))
+    pass
