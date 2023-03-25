@@ -49,18 +49,15 @@ class autoroles(commands.Cog):
     @app_commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def forceupdate(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Running through every member")
+        await interaction.response.send_message("Running through every member", ephemeral=True)
         members = interaction.guild.members
         for user in members:
-            if "Verified" in user.roles:
-                ign = await self.bot.get_db_info(interaction.user.id)[1]
+            idroles = [id.id for id in user.roles]
+            if 1029842346268971048 in idroles:
+                ign = await self.bot.get_db_info(user.id)
                 if ign != None:
-                    req = await self.bot.get_db_info(user.id)
-                    if req:
-                        profile = req[2]
-                    else:
-                        uuid = await self.bot.get_uuid(ign)
-                        profile = await self.bot.get_most_recent_profile(uuid)
+                    uuid = await self.bot.get_uuid(ign)
+                    profile = await self.bot.get_most_recent_profile(uuid)
                     weight = await calculate_farming_weight(self.bot,ign,profile)
                     if weight[0] >= 1500:
                         guild = interaction.guild
