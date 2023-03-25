@@ -49,7 +49,7 @@ class autoroles(commands.Cog):
     @app_commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def forceupdate(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Running through every member", ephemeral=True)
+        await interaction.response.send_message("Running through every member")
         members = interaction.guild.members
         channel =  self.bot.get_channel(1040291074410819597)
         await channel.send(members)
