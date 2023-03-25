@@ -51,6 +51,8 @@ class autoroles(commands.Cog):
     async def forceupdate(self, interaction: discord.Interaction):
         await interaction.response.send_message("Running through every member")
         members = interaction.guild.members
+        channel =  self.bot.get_channel(1040291074410819597)
+        await channel.send(members)
         for user in members:
             idroles = [id.id for id in user.roles]
             if 1029842346268971048 in idroles:
