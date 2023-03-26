@@ -55,10 +55,7 @@ async def close_ticket(bot:FarmingCouncil,ticket_channel:discord.Thread, close_u
         bot=bot,
         support_dev=False
     )
-    await ticket_channel.delete()
     file = discord.File(io.BytesIO(transcript.encode()), filename=f"transcript-{ticket_channel.name}.html")
-
-
     async with bot.pool.acquire() as conn:
         conn: aiomysql.Connection
         async with conn.cursor() as cursor:
@@ -126,7 +123,7 @@ async def close_ticket(bot:FarmingCouncil,ticket_channel:discord.Thread, close_u
             cursor: aiomysql.Cursor
             await cursor.execute(f"UPDATE tickets SET ticket_status = 1 WHERE channel_id = %s",(ticket_channel.id,))
         await conn.commit()
-
+    await ticket_channel.delete()
 
 class CloseTicket(ui.View):
     def __init__(self, channel: discord.TextChannel, author: int, /) -> None:

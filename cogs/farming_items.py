@@ -161,7 +161,7 @@ class FarmingItems(commands.Cog):
             with open ("price.json", "w") as f:
                 json.dump(self.prices,f)
             
-    async def send_channel_error_response(self,chan,msg,id,a=None,b=None):
+    async def send_channel_error_response(self,chan,msg,a=None,b=None):
         embed = discord.Embed(title="Error", description=msg, color=discord.Color.red())
         await chan.send(embed=embed)
 
@@ -196,7 +196,7 @@ class FarmingItems(commands.Cog):
             except KeyError:
                 continue
         return found
-
+        
 import aiohttp
 class FarmingItem:
     def __init__(self, items_cog: FarmingItems, name: str, lore: list, item_id: str, quantity: int, recom: bool,
