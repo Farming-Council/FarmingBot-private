@@ -18,3 +18,4 @@ python-dotenv==1.0.0
 Pillow==9.4.0
 pytz==2022.7.1
 yarl==1.8.2
+matplotlib=3.7.0
