@@ -71,7 +71,7 @@ class autoroles(commands.Cog):
         for user in members:
             try:
                 idroles = [i.id for i in user.roles]
-                if 1023315201875005520 not in idroles:
+                if 1029842346268971048 not in idroles:
                     await channel.send(f"{user} Not Linked")
                     continue
                 ign = user.nick
