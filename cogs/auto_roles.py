@@ -81,10 +81,11 @@ class autoroles(commands.Cog):
                     weight = await calculate_farming_weight(self.bot, uuid)
                     await channel.send(f"```Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight, 2)}```")
                     role = interaction.guild.get_role(1023315201875005520)
+                    use = self.bot.get_user(user.id)
                     if weight >= 1500:
-                        await user.add_roles(role)
+                        await use.add_roles(role)
                     else:
-                        await user.remove_roles(role)
+                        await use.remove_roles(role)
             except Exception as e:
                 continue
                 
