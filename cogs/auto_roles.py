@@ -67,18 +67,15 @@ class autoroles(commands.Cog):
         members = interaction.guild.members
         channel =  self.bot.get_channel(1095276698477527131)
         await interaction.response.send_message(f"Running through {len(members)} Members")
-        count = 0
         for user in members:
             try:
                 ign = await self.bot.get_db_info(int(user.id))
-                count += 1
-                if count % 100 == 0:
-                    await channel.send(f"{count} Members Checked")
                 if ign != None:
                     uuid = await self.bot.get_uuid(ign)
                     profile = await self.bot.get_most_recent_profile(uuid)
                     weight = await calculate_farming_weight(self.bot,ign,profile)
                     role = interaction.guild.get_role(1023315201875005520)
+                    await channel.send(f"Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight[1]['total'], 2)}")
                     if weight[1]["total"] >= 1500:
                         await interaction.user.add_roles(role)
                     else:
