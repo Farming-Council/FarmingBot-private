@@ -69,12 +69,11 @@ class autoroles(commands.Cog):
         channel =  self.bot.get_channel(1095291940007845950)
         await interaction.response.send_message(f"Running through {len(members)} Members")
         for user in members:
-            await channel.send(f"a")
             try:
                 idroles = [i.id for i in user.roles]
                 if 1023315201875005520 not in idroles:
                     await channel.send(f"{user} Not Linked")
-                    return
+                    continue
                 ign = user.nick
                 if ign == None:
                     ign = user.name
@@ -87,9 +86,9 @@ class autoroles(commands.Cog):
                         await user.add_roles(role)
                     else:
                         await user.remove_roles(role)
-            except Exception as e:
-                await channel.send(e)
-                continue
+            except:
+                await channel.send("user isnt a IGN")
+                pass
                 
     
 
