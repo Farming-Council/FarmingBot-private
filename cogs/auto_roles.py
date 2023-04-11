@@ -9,6 +9,7 @@ from discord.ext import commands
 import sys, os
 import time
 import aiohttp
+from discord.utils import get
 
 if TYPE_CHECKING:
     from utils import FarmingCouncil
@@ -80,13 +81,13 @@ class autoroles(commands.Cog):
                     uuid = await self.bot.get_uuid(ign)
                     weight = await calculate_farming_weight(self.bot, uuid)
                     await channel.send(f"```Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight, 2)}```")
-                    role = interaction.guild.get_role(1023315201875005520)
-                    use = self.bot.get_user(user.id)
+                    role = get (interaction.guild.roles, name = "Certified Farmer")
                     if weight >= 1500:
-                        await use.add_roles(role)
+                        await user.add_roles(role)
                     else:
-                        await use.remove_roles(role)
+                        await user.remove_roles(role)
             except Exception as e:
+                print(e)
                 continue
                 
     
