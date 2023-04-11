@@ -72,6 +72,7 @@ class autoroles(commands.Cog):
             try:
                 idroles = [i.id for i in user.roles]
                 if 1023315201875005520 not in idroles:
+                    await channel.send(f"{user} Not Linked")
                     return
                 ign = await self.bot.get_db_info(int(user.id))
                 ign = user.nick
