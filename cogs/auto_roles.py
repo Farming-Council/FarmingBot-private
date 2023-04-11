@@ -86,6 +86,7 @@ class autoroles(commands.Cog):
                     else:
                         await user.remove_roles(role)
             except Exception as e:
+                await channel.send(e)
                 continue
                 
     
