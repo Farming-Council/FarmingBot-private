@@ -75,7 +75,7 @@ class autoroles(commands.Cog):
                     profile = await self.bot.get_most_recent_profile(uuid)
                     weight = await calculate_farming_weight(self.bot,ign,profile)
                     role = interaction.guild.get_role(1023315201875005520)
-                    await channel.send(f"Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight[1]["total"], 2)}")
+                    await channel.send(f"Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight[1]['total'], 2)}")
                     if weight[1]["total"] >= 1500:
                         await interaction.user.add_roles(role)
                     else:
