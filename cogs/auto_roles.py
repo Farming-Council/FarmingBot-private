@@ -79,9 +79,9 @@ class autoroles(commands.Cog):
                     await channel.send(f"```Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight, 2)}```")
                     role = interaction.guild.get_role(1023315201875005520)
                     if weight >= 1500:
-                        await interaction.user.add_roles(role)
+                        await user.add_roles(role)
                     else:
-                        await interaction.user.remove_roles(role)
+                        await user.remove_roles(role)
             except Exception as e:
                 continue
                 
