@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 import discord
 from discord import app_commands
 from discord.ext import commands
+import sys, os
+import time
+import aiohttp
 
 if TYPE_CHECKING:
     from utils import FarmingCouncil
@@ -14,57 +17,75 @@ if TYPE_CHECKING:
 class autoroles(commands.Cog):
     def __init__(self, bot: FarmingCouncil):
         self.bot: FarmingCouncil = bot
+        self.session: aiohttp.ClientSession | None = None
 
+    async def setup_hook(self) -> None:
+        self.session = aiohttp.ClientSession()
 
-    @app_commands.command(description="Update to see if you are eligible for Certified Farmer")
     @app_commands.guild_only()
     @app_commands.describe(ign = "Hypixel username", profile = "Skyblock profile name")
-    async def update(self, interaction: discord.Interaction, ign: str=None, profile: str=""):
-        if ign is None:
-            ign = await self.bot.get_db_info(interaction.user.id)[1]
-        if ign is None:
-            await interaction.response.send_message("Please provide a valid Minecraft username or link your account with /link")
-            return
-        if profile == "":
-            req = await self.bot.get_db_info(interaction.user.id)
-            if req:
-                profile = req[2]
+    @app_commands.command(description="Update to see if you are eligible for Certified Farmer")
+    async def updates(self, interaction: discord.Interaction, ign: str=None, profile: str=""):
+        try:
+            if ign is None:
+                ign = await self.bot.get_db_info(interaction.user.id)[1]
+            if ign is None:
+                await interaction.response.send_message("Please provide a valid Minecraft username or link your account with /link")
+                return
+            if profile == "":
+                req = await self.bot.get_db_info(interaction.user.id)
+                if req:
+                    profile = req[2]
+                else:
+                    uuid = await self.bot.get_uuid(ign)
+                    profile = await self.bot.get_most_recent_profile(uuid)
+            weight = await calculate_farming_weight(self.bot,ign,profile)
+            if weight[1]["total"] == 0:
+                embed = discord.Embed(title="Error",description=weight[1])            
+                return
+            if weight[1]["total"] >= 1500:
+                embed = discord.Embed(title="You are eligible for **Certified Farmer**!", description = f"""Congratulations {interaction.user}\n\nThe role "Certified Farmer" should be added to you.""")
+                guild = interaction.guild
+                role = interaction.guild.get_role(1023315201875005520)
+                await interaction.user.add_roles(role)
             else:
-                uuid = await self.bot.get_uuid(ign)
-                profile = await self.bot.get_most_recent_profile(uuid)
-        weight = await calculate_farming_weight(self.bot,ign,profile)
-        if weight[0] == 0:
-            embed = discord.Embed(title="Error",description=weight[1])            
-            return
-        if weight[0] >= 1500:
-            embed = discord.Embed(title="You are eligible for **Certified Farmer**!", description = f"""Congratulations {interaction.user}\n\nThe role "Certified Farmer" should be added to you.""")
-            guild = interaction.guild
-            role = interaction.guild.get_role(1023315201875005520)
-            await interaction.user.add_roles(role)
-        else:
-            embed = discord.Embed(title="You do not meet the requirements for certified farmer", description = f"""Sorry {interaction.user}\n\nYou need 2000+ farming weight to get the certified farmer role, and you currently have {weight[0]}""")
-        await interaction.response.send_message(embed=embed)
+                embed = discord.Embed(title="You do not meet the requirements for certified farmer", description = f"""Sorry {interaction.user}\n\nYou need 2000+ farming weight to get the certified farmer role, and you currently have {round(weight[1]["total"], 2)}""", color=0x2F3136)
+                embed.set_image(url='attachment://image.png')
+                embed.set_footer(text="Made by FarmingCouncil",
+                            icon_url="https://i.imgur.com/4YXjLqq.png")
+            await interaction.edit_original_response(embed=embed)
+        except Exception as e:
+            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
     
     @app_commands.command(description="Checks everyone for certified farmer")
     @app_commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def forceupdate(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Running through every member")
         members = interaction.guild.members
-        channel =  self.bot.get_channel(1040291074410819597)
-        await channel.send(members)
+        channel =  self.bot.get_channel(1095276698477527131)
+        await interaction.response.send_message(f"Running through {len(members)} Members")
+        count = 0
         for user in members:
-            idroles = [id.id for id in user.roles]
-            if 1029842346268971048 in idroles:
-                ign = await self.bot.get_db_info(user.id)
+            try:
+                ign = await self.bot.get_db_info(int(user.id))
+                count += 1
+                if count % 100 == 0:
+                    await channel.send(f"{count} Members Checked")
                 if ign != None:
                     uuid = await self.bot.get_uuid(ign)
                     profile = await self.bot.get_most_recent_profile(uuid)
                     weight = await calculate_farming_weight(self.bot,ign,profile)
-                    if weight[0] >= 1500:
-                        guild = interaction.guild
-                        role = interaction.guild.get_role(1023315201875005520)
+                    role = interaction.guild.get_role(1023315201875005520)
+                    if weight[1]["total"] >= 1500:
                         await interaction.user.add_roles(role)
+                    else:
+                        await interaction.user.remove_roles(role)
+            except Exception as e:
+                continue
+                
     
 
         
