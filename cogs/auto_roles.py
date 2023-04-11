@@ -69,9 +69,6 @@ class autoroles(commands.Cog):
         await interaction.response.send_message(f"Running through {len(members)} Members")
         for user in members:
             try:
-                idroles = [i.id for i in user]
-                if 1023315201875005520 not in idroles:
-                    return
                 ign = await self.bot.get_db_info(int(user.id))
                 ign = user.nick
                 if ign == None:
