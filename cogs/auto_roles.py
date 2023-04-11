@@ -68,24 +68,32 @@ class autoroles(commands.Cog):
         members = interaction.guild.members
         channel =  self.bot.get_channel(1095291940007845950)
         await interaction.response.send_message(f"Running through {len(members)} Members")
+        count = 0
         for user in members:
             try:
                 idroles = [i.id for i in user.roles]
                 if 1029842346268971048 not in idroles:
-                    await channel.send(f"{user} Not Linked, {idroles}")
                     continue
+                count += 1
+                if count % 100 == 0:
+                    await channel.send(f"{count} Members Done")
                 ign = user.nick
                 if ign == None:
                     ign = user.name
                 if ign != None:
                     uuid = await self.bot.get_uuid(ign)
                     weight = await calculate_farming_weight(self.bot, uuid)
-                    await channel.send(f"```Discord Name: {user}\nDiscord ID: {user.id}\nMinecraft IGN: {ign}\nWeight: {round(weight, 2)}```")
                     role = get (interaction.guild.roles, name = "Certified Farmer")
-                    if weight >= 1500:
-                        await user.add_roles(role)
-                    else:
-                        await user.remove_roles(role)
+                    try:
+                        if weight >= 2500:
+                            await user.add_roles(role)
+                    except:
+                        pass
+                    try:
+                        if weight < 2500:
+                            await user.remove_roles(role)
+                    except:
+                        pass
             except:
                 await channel.send("user isnt a IGN")
                 pass
