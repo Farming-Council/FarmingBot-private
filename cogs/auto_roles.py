@@ -30,9 +30,11 @@ class autoroles(commands.Cog):
         try:
             if ign is None:
                 ign = await self.bot.get_db_info(interaction.user.id)[1]
+                
             if ign is None:
                 await interaction.response.send_message("Please provide a valid Minecraft username or link your account with /link")
                 return
+            
             if profile == "":
                 req = await self.bot.get_db_info(interaction.user.id)
                 if req:
@@ -40,10 +42,13 @@ class autoroles(commands.Cog):
                 else:
                     uuid = await self.bot.get_uuid(ign)
                     profile = await self.bot.get_most_recent_profile(uuid)
+                    
             weight = await calculate_farming_weight(self.bot,uuid)
+            
             if weight == 0:
                 embed = discord.Embed(title="Error",description=weight)            
                 return
+            
             if weight >= 1500:
                 embed = discord.Embed(title="You are eligible for **Certified Farmer**!", description = f"""Congratulations {interaction.user}\n\nThe role "Certified Farmer" should be added to you.""")
                 guild = interaction.guild
@@ -54,7 +59,9 @@ class autoroles(commands.Cog):
                 embed.set_image(url='attachment://image.png')
                 embed.set_footer(text="Made by FarmingCouncil",
                             icon_url="https://i.imgur.com/4YXjLqq.png")
+                
             await interaction.edit_original_response(embed=embed)
+            
         except Exception as e:
             print(e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -69,31 +76,41 @@ class autoroles(commands.Cog):
         channel =  self.bot.get_channel(1095291940007845950)
         await interaction.response.send_message(f"Running through {len(members)} Members")
         count = 0
+        
         for user in members:
             try:
                 idroles = [i.id for i in user.roles]
+                
                 if 1029842346268971048 not in idroles:
                     continue
+                
                 count += 1
                 if count % 100 == 0:
                     await channel.send(f"{count} Members Done")
+                    
                 ign = user.nick
                 if ign == None:
                     ign = user.name
+                    
                 if ign != None:
                     uuid = await self.bot.get_uuid(ign)
                     weight = await calculate_farming_weight(self.bot, uuid)
                     role = get (interaction.guild.roles, name = "Certified Farmer")
                     try:
+                        
                         if weight >= 2500:
                             await user.add_roles(role)
+                            
                     except:
                         pass
                     try:
+                        
                         if weight < 2500:
                             await user.remove_roles(role)
+                            
                     except:
                         pass
+                    
             except:
                 await channel.send("user isnt a IGN")
                 pass
