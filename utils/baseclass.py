@@ -157,6 +157,8 @@ class FarmingCouncil(commands.Bot):
                 await cursor.execute("INSERT INTO tutorial (cropname, link) VALUES (%s, %s) ON DUPLICATE KEY UPDATE link = %s", (str(cropname), str(link), str(link)))
                 await conn.commit()
     
+    
+    
     async def remove_crop(self,cropname):
         async with self.pool.acquire() as conn:
             conn: aiomysql.Connection
@@ -164,28 +166,10 @@ class FarmingCouncil(commands.Bot):
                 cursor: aiomysql.Cursor
                 await cursor.execute("DELETE FROM tutorial where cropname = %s", (str(cropname),))
                 await conn.commit()
+                
+                
+                
     async def get_uuid(self, username: str) -> str:
-        """Gets the UUID of a Minecraft player with the given username.
-
-        Parameters
-        ----------
-        username: :class:`str`
-            The username of the player.
-
-        Returns
-        -------
-        :class:`str`
-            The UUID of the player.
-
-        Raises
-        ------
-        ConnectionError
-            The aiohttp session has not been instantiated.
-        InvalidMinecraftUsername
-            The given username contained special characters that weren't valid.
-        KeyError
-            The given username was invalid.
-        """
         if self.session is None:
             raise ConnectionError("aiohttp session has not been set")
         if not username.isalnum() and "_" not in username:
@@ -196,26 +180,9 @@ class FarmingCouncil(commands.Bot):
             js = await req.json()
             return js["id"]
 
+
+
     async def get_hypixel_player(self, uuid: str) -> HypixelPlayer:
-        """Gets a Hypixel player object from the given UUID.
-
-        Parameters
-        ----------
-        uuid: :class:`str`
-            The UUID of the player.
-
-        Returns
-        -------
-        :class:`HypixelPlayer`
-            The constructed player object.
-
-        Raises
-        ------
-        ConnectionError
-            The aiohttp session has not been instantiated.
-        PlayerNotFoundError
-            The player could not be located by the Hypixel API.
-        """
         if self.session is None:
             raise ConnectionError("aiohttp session has not been set")
         async with self.session.get(
@@ -232,28 +199,9 @@ class FarmingCouncil(commands.Bot):
                 social_media=social_media
             )
 
+
+
     async def get_skyblock_data(self, uuid: str, profile: str | None) -> HypixelPlayer:
-        """Gets a player's SkyBolock data from the given UUID
-
-        Parameters
-        ----------
-        uuid: :class:`str`
-            The UUID of the player.
-        profile: Union[:class:`str`, :class:None]
-            The profile name.
-
-        Returns
-        -------
-        :class:`dict`
-            The profile data returned by the API
-
-        Raises
-        ------
-        ConnectionError
-            The aiohttp session has not been instantiated.
-        PlayerNotFoundError
-            The player could not be located by the Hypixel API.
-        """
         if self.session is None:
             raise ConnectionError("aiohttp session has not been set")
         async with self.session.get(
@@ -288,6 +236,9 @@ class FarmingCouncil(commands.Bot):
                         latest_profile_last_save = last_save
                 i += 1
             return profiles[latest_profile_index]["members"][uuid]
+        
+        
+        
     async def get_most_recent_profile(self, uuid):
         if self.session is None:
             raise ConnectionError("aiohttp session has not been set")
@@ -318,6 +269,9 @@ class FarmingCouncil(commands.Bot):
                         latest_profile_last_save = last_save
                 i += 1
             return(profiles[latest_profile_index]["cute_name"])
+        
+        
+        
     async def get_db_info(self,discord_id):
         async with self.pool.acquire() as conn:
             conn: aiomysql.Connection
@@ -329,6 +283,9 @@ class FarmingCouncil(commands.Bot):
             return ign[0]
         else:
             return None
+        
+        
+        
     async def newserver(self, id):
         async with self.pool.acquire() as conn:
             conn: aiomysql.Connection
@@ -347,6 +304,8 @@ class FarmingCouncil(commands.Bot):
                 await conn.commit()
         return(0)
 
+
+
     async def getserver(self, id):
         async with self.pool.acquire() as conn:
             conn: aiomysql.Connection
@@ -355,6 +314,8 @@ class FarmingCouncil(commands.Bot):
                 await cursor.execute("SELECT * FROM server WHERE serverid = %s", (int(id),))
                 item = await cursor.fetchone()
         return(item)
+
+
 
     async def changesettings(self,serverid,setting,value):
         async with self.pool.acquire() as conn:
@@ -373,6 +334,8 @@ class FarmingCouncil(commands.Bot):
                 await cursor.execute(f"UPDATE server SET {setting} = %s WHERE serverid = %s", (value,int(serverid),))
                 await conn.commit()
         return(1)
+
+
 
     def get_ran(self,list):
         a = random.randint(-50,100)
