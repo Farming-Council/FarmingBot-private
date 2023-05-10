@@ -135,7 +135,7 @@ In case you want to support us so that we can continue to work on this community
 
 __**https://www.patreon.com/FarmingCouncil**__
 
-Have a nice day :wave: """, color=0x2F3136)
+Have a nice day :wave: """, color=0x2b2d31)
         await interaction.channel.send(embed=embed)
         await interaction.channel.send(f"{us.mention}",delete_after=1)
         name = interaction.channel.name
@@ -230,7 +230,7 @@ Cheers 🍸
 """, color=0x2b2d31)
         e.set_image(url="https://i.imgur.com/KMTZJxm.png")
         e.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
-        image_embed = discord.Embed(color=0x2F3136)
+        image_embed = discord.Embed(color=0x2b2d31)
         image_embed.set_image(url="https://i.imgur.com/gYpLMvA.png")
         await interaction.channel.send(
             embeds=[image_embed, e],
@@ -275,11 +275,11 @@ Current prices are for non enchanted items _(Last updated: 11th of March.)_:
 
 **We will process your request as soon as possible. Please be patient and don't ping any of our Staff.**
             """,
-            color=0x2F3136
+            color=0x2b2d31
         )
         embed.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
         embed.set_image(url="https://i.imgur.com/KMTZJxm.png")
-        image_embed = discord.Embed(color=0x2F3136)
+        image_embed = discord.Embed(color=0x2b2d31)
         image_embed.set_image(url="https://i.imgur.com/e8ctdI0.png")
         await interaction.channel.send(
             embeds=[image_embed, embed],
