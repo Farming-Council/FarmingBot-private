@@ -130,13 +130,12 @@ class Ticketing(commands.Cog):
             return await interaction.channel.delete()
         
         embed = discord.Embed(title="Do you want to support us?", description = """
-            We are happy that you chose our service!
-If you want to support us so we can continue working on this community make sure to subscribe to us on youtube!
+Thanks for reaching us to out, I hope we were able to resolve your issue!
+In case you want to support us so that we can continue to work on this community and the <@1070710324447166484> please consider subscribing to our **Patreon**!
 
-**https://www.youtube.com/@FarmingCouncil**
+__**https://www.patreon.com/FarmingCouncil**__
 
-Your help would mean the world to us ❤️
-Have a nice day!""", color=0x2F3136)
+Have a nice day :wave: """, color=0x2F3136)
         await interaction.channel.send(embed=embed)
         await interaction.channel.send(f"{us.mention}",delete_after=1)
         name = interaction.channel.name
@@ -221,21 +220,14 @@ Have a nice day!""", color=0x2F3136)
         await interaction.response.send_message("Creating ticket view...", ephemeral=True)
         e = discord.Embed(title="Contact Staff",
                           description="""
-                          _Here you can contact the **staff team** for the following reasons:_
+                          If you're in need of assistance or have any questions, our dedicated staff team is here to help you out. Whether it's a technical issue, a server-related question, or any other concern, don't hesitate to reach out to us. You can also contact us to claim won prizes from events or similar.
 
-> 📢 **Reporting** 
-> - scamming, rule violation, ratting, etc.
-> 
-> 🃏 **Requesting Roles & Claiming Giveaway rewards**
-> - for requesting roles that are not listed in <#1031452634974015498>, or claiming giveaway rewards in case you won. 
-> (Requestable roles: <@&1023315201875005520> and positions (f.e. <@&1036731140712702003>)
-> 
-> ❓ **Other Questions**
+To ensure a smooth and efficient resolution, we kindly ask you to provide as much detail as possible when describing your issue. This will help our team to better understand your situation and provide you with the most accurate assistance.
 
-❕ **Do not contact our staff team for the following**:
-- Reporting someone, who is not in this Discord server, Creating non-serious tickets (i.e. wasting staff time), making claims about someone without valid evidence.
-                          """,
-                          color=0x2F3136)
+Please remember to be respectful and patient while awaiting a response. Our staff members are committed to helping everyone in a timely manner, but response times may vary based on the complexity of the request and the current workload.
+
+Cheers 🍸
+""", color=0x2b2d31)
         e.set_image(url="https://i.imgur.com/KMTZJxm.png")
         e.set_footer(text="Made by FarmingCouncil", icon_url="https://i.imgur.com/4YXjLqq.png")
         image_embed = discord.Embed(color=0x2F3136)
