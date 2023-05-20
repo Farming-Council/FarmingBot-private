@@ -65,10 +65,6 @@ async def close_ticket(bot:FarmingCouncil,ticket_channel:discord.Thread, close_u
     if result:
         if result[5] == 1:
             t_type = "Support "
-        elif result[5] == 2:
-            t_type = "Buy "
-        elif result[5] == 3:
-            t_type = "Sell "
         else:
             t_type = ""
         embed = discord.Embed(
@@ -78,13 +74,8 @@ async def close_ticket(bot:FarmingCouncil,ticket_channel:discord.Thread, close_u
         embed.add_field(name="\U0001f194 Ticket ID", value=str(result[3]))
         embed.add_field(name="\U0001f512 Closed By", value=close_user.mention)
         embed.add_field(name="\U0001f552 Opened", value=discord.utils.format_dt(ticket_channel.created_at))
-        staff_channel = bot.get_channel(int(os.environ.get("SELL_TICKET_CHANNEL")))
-        if result[5] == 2:
-            staff_channel = bot.get_channel(int(os.environ.get("BUY_TICKET_CHANNEL")))
-        elif result[5] == 3:
-            staff_channel = bot.get_channel(int(os.environ.get("SELL_TICKET_CHANNEL")))
-        else:
-            staff_channel = bot.get_channel(int(os.environ.get("SUPPORT_TICKET_CHANNEL")))
+        staff_channel = bot.get_channel(int(os.environ.get("SUPPORT_TICKET_CHANNEL")))
+
         try:
             msg = await staff_channel.fetch_message(result[6])
             await msg.delete()
@@ -153,12 +144,8 @@ class CloseTicket(ui.View):
                     (self.author, self.channel.id, self.close_button.custom_id, ticket_id, 0, type)
                 )
             await conn.commit()
-        if type == 2:
-            staff_channel = bot.get_channel(int(os.environ.get("BUY_TICKET_CHANNEL")))
-        elif type == 3:
-            staff_channel = bot.get_channel(int(os.environ.get("SELL_TICKET_CHANNEL")))
-        else:
-            staff_channel = bot.get_channel(int(os.environ.get("SUPPORT_TICKET_CHANNEL")))
+        staff_channel = bot.get_channel(int(os.environ.get("SUPPORT_TICKET_CHANNEL")))
+
         if staff_channel:
             user = await bot.fetch_user(self.author)
             if user:
